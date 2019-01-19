@@ -1,0 +1,57 @@
+<html>
+<head>
+    <title>Admin page</title>
+</head>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js">
+</script>
+<script>
+    function getUsers(){
+        $.ajax({
+            type: "GET",
+            contentType: 'application/JSON',
+            url: '127.0.0.1:8087/users',
+            dataType: 'json',
+            headers: {
+                "Authorization":"bearer "+window.localStorage.getItem("access"),
+            },
+            success: function(data, textstatus, error){
+                var users = JSON.parse(data);
+                for(var i =0; users.length; i++){
+                    var li_tag = document.createElement("li");
+                    li_tag.value = users[i].login;
+                    var input_tag = document.createElement("input");
+
+                    var att = document.createAttribute("type");       // Create a "class" attribute
+                    att.value = "button";                           // Set the value of the class attribute
+                    input_tag.setAttributeNode(att);
+
+                    att = document.createAttribute("name");
+                    att.value = users[i].login;
+                    input_tag.setAttributeNode(att);
+
+                    att = document.createAttribute("value");
+                    if(users[i].isBanned == "true") {
+                        att.value = "unBanned";
+                    }else{
+                        att.value = "banned";
+                    }
+                    input_tag.setAttributeNode(att);
+                    input_tag.addEventListener("click", "changeStatus");
+                    li_tag.appendChild(input_tag);
+                    document.getElementById("active-users").appendChild(li_tag);
+                }
+
+
+            },
+            error:function(data){}
+
+        });
+
+    }
+</script>
+<body onload="getUsers()">
+<form>
+ <ul id="active-users"></ul>
+</form>
+</body>
+</html>
