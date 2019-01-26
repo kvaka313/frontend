@@ -1,6 +1,7 @@
 <html>
 <head>
     <title>Chat page</title>
+    <link rel="stylesheet" href="ie.css">
 </head>
  <script src="https://code.jquery.com/jquery-3.3.1.min.js">
  </script>
@@ -149,15 +150,20 @@
 
  </script>
 <body>
- <div id="input-messages"></div>
- <ul id="active-users"></ul>
+
+ <div id="left-block">
+     <div id="input-messages"></div>
  <form>
      <input type="text" id="output-messages"/>
  </form>
-<form>
+ </div>
+ <div id="right-block">
+   <ul id="active-users"></ul>
+   <form>
     <input type="button" value="send" id="send-message"/>
     <input type="button" value="broadcast" id="broadcast-message"/>
     <input type="button" value="logout" id="logout"/>
-</form>
+   </form>
+ </div>
 </body>
 </html>
