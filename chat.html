@@ -1,0 +1,163 @@
+<html>
+<head>
+    <title>Chat page</title>
+</head>
+ <script src="https://code.jquery.com/jquery-3.3.1.min.js">
+ </script>
+ <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js">
+ </script>
+ <script>
+      var ws = new SockJS("http://localhost:8087/socket", null, {transports: ['xhr-streaming'], headers: {'Authorization': 'bearer ' + window.localStorage.getItem("access")}});
+      document.addEventListener("DOMContentLoaded", socketHandler);
+      function socketHandler(){
+          document.getElementById("send-message").addEventListener("click", send);
+          document.getElementById("broadcast-message").addEventListener("click", broadcast);
+          document.getElementById("logout").addEventListener("click", logout);
+          ws.onopen = function(){
+              console.log("connection establish");
+          }
+
+          ws.onclose = function(event){
+              if(event.wasClean){
+                  console.log("disconnected");
+              }else{
+                  switch(event.status){
+                      case '401': {
+                          refreshAccessToken();
+                          ws = new SockJS("http://localhost:8087/socket", null, {transports: ['xhr-streaming'], headers: {'Authorization': 'bearer ' + window.localStorage.getItem("access")}});
+                          break;
+                      }
+                      default:{
+                          var errorJson = JSON.parse(xhs.responseText);
+                          var message = errorJson.message;
+                          document.getElementById("error").value = message;
+                      }
+                  }
+              }
+          };
+
+          ws.onerror = function(event){
+              switch(event.status){
+                  case '401': {
+                      refreshAccessToken();
+                      ws = new SockJS("http://localhost:8087/socket", null, {transports: ['xhr-streaming'], headers: {'Authorization': 'bearer ' + window.localStorage.getItem("access")}});
+                      break;
+                  }
+                  default:{
+                      var errorJson = JSON.parse(xhs.responseText);
+                      var message = errorJson.message;
+                      document.getElementById("error").value = message;
+                  }
+              }
+          };
+
+          ws.onmessage = function(event){
+              var stringJson = event.data;
+              var receiveJson = JSON.parse(stringJson);
+              switch(receiveJson.type){
+                  case "PRIVATE":{
+                      var from = receiveJson.sender;
+                      var message = receiveJson.message;
+                      document.getElementById("input-messages").value+=from+":"+message+"<br>";
+                      break;
+                  }
+                  case "BROADCAST":{
+                      var from = receiveJson.sender;
+                      var message = receiveJson.message;
+                      document.getElementById("input-messages").value+="<B>"+from+":"+message+"</B><br>";
+                      break;
+                  }
+                  case "LIST":{
+                      var users = receiveJson.usersLogin;
+                      document.getElementById("active-users").innerHTML="";
+                      for(var i = 0; i< users.length; i++){
+                          var li_tag = document.createElement("li");
+                          li_tag.value=user[i];
+                          var attr_id = document.createAttribute("id");
+                          attr_id.value=user[i];
+                          li_tag.setAttributeNode(attr_id);
+                          li_tag.addEventListener("click", userToOutput);
+                          document.getElementById("active-users").appendChild(li_tag);
+                      }
+                  }
+
+              }
+
+          }
+      }
+
+      function userToOutput(obj){
+          var li_tag = obj.currentTarget;
+          var user = li_tag.id;
+          document.getElementById("output-messages").value=user+":"
+      }
+
+      function send(){
+          var message = document.getElementById("output-messages").value;
+          var array_mess = message.split(":");
+          var jsonSend = {};
+          jsonSend["type"] = "PRIVATE";
+          jsonSend["receiver"] = array_mess[0];
+          jsonSend["message"] = array_mess[1];
+          ws.send(JSON.stringify(jsonSend));
+      }
+
+      function broadcast(){
+          var message = document.getElementById("output-messages").value;
+          var array_mess = message.split(":");
+          var jsonSend = {};
+          jsonSend["type"] = "BROADCAST";
+          jsonSend["receiver"] = array_mess[0];
+          jsonSend["message"] = array_mess[1];
+          ws.send(JSON.stringify(jsonSend));
+      }
+
+      function logout(){
+          var jsonSend = {};
+          jsonSend["type"] = "LOGOUT";
+          jsonSend["receiver"] = "";
+          jsonSend["message"] = "";
+          ws.send(JSON.stringify(jsonSend));
+          window.location.href = "http://127.0.0.1/index.html"
+      }
+
+      function refreshAccessToken(){
+          $.ajax({
+              type:"POST",
+              contentType: 'application/x-www-form-urlencoded',
+              url: 'http://127.0.0.1:8080/auth/realms/chat/protocol/openid-connect/token',
+              dataType: 'json',
+              data: jQuery.param({
+                  grant_type: "refresh_token",
+                  client_id: "ADMIN-UI",
+                  refresh_token: window.localStorage.getItem("refresh")
+              }),
+              success:function(data, textstatus, error){
+                  var tokens = JSON.parse(data);
+                  var accessToken = tokens.access_token;
+                  var refreshToken = tokens.refresh_token;
+                  window.localStorage.setItem("access",accessToken);
+                  window.localStorage.setItem("refresh", refreshToken);
+              },
+              error:function(xhr, ajaxOptions, thrownError){
+                  window.location.href = "http://127.0.0.1/login.html"
+
+              }
+
+          });
+      }
+
+ </script>
+<body>
+ <div id="input-messages"></div>
+ <ul id="active-users"></ul>
+ <form>
+     <input type="text" id="output-messages"/>
+ </form>
+<form>
+    <input type="button" value="send" id="send-message"/>
+    <input type="button" value="broadcast" id="broadcast-message"/>
+    <input type="button" value="logout" id="logout"/>
+</form>
+</body>
+</html>

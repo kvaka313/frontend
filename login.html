@@ -7,8 +7,9 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js">
 </script>
 <script>
+    document.addEventListener("DOMContentLoaded", onLoad);
     function onLoad(){
-        document.getElementById("send-login").addEventListener("click","getToken");
+        document.getElementById("send-login").addEventListener("click",getToken);
     }
    function getToken() {
        $.ajax({
@@ -38,15 +39,15 @@
                    window.location.href = "http://127.0.0.1/chat.html"
                }
            },
-           error:function(data){
-               var errorJson = JSON.parse(data);
+           error:function(xhs){
+               var errorJson = JSON.parse(xhs.responseText);
                var message = errorJson.message;
                document.getElementById("error").value = message;
            }
        });
    }
 </script>
-<body onload="onLoad()">
+<body>
 <div id="error"></div>
 <form>
     Login: <input type="text" name="login" id="login"/>

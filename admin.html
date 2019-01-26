@@ -5,6 +5,7 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js">
 </script>
 <script>
+    document.addEventListener("DOMContentLoaded", getUsers);
     function getUsers(){
         $.ajax({
             type: "GET",
@@ -16,6 +17,7 @@
             },
             success: function(data, textstatus, error){
                 var users = JSON.parse(data);
+                document.getElementById("active-users").innerHTML="";
                 for(var i =0; users.length; i++){
                     var li_tag = document.createElement("li");
                     li_tag.value = users[i].login;
@@ -36,20 +38,124 @@
                         att.value = "banned";
                     }
                     input_tag.setAttributeNode(att);
-                    input_tag.addEventListener("click", "changeStatus");
+                    input_tag.addEventListener("click", changeStatus);
                     li_tag.appendChild(input_tag);
                     document.getElementById("active-users").appendChild(li_tag);
                 }
 
 
             },
-            error:function(data){}
+            error:function(xhs){
+                switch(xhs.status){
+                    case '401': refreshAccessToken(); getUsers(); break;
+                    default:{
+                        var errorJson = JSON.parse(xhs.responseText);
+                        var message = errorJson.message;
+                        document.getElementById("error").value = message;
+                    }
+                }
+            }
 
         });
 
     }
+
+    function changeStatus(obj){
+        var button_click = obj.currentTarget;
+        var user = button_click.name;
+        var banStatus = button_click.value;
+        if(banStatus == 'banned'){
+            ban(user);
+        }else{
+            unban(user);
+        }
+        getUsers();
+    }
+
+    function refreshAccessToken(){
+        $.ajax({
+            type:"POST",
+            contentType: 'application/x-www-form-urlencoded',
+            url: 'http://127.0.0.1:8080/auth/realms/chat/protocol/openid-connect/token',
+            dataType: 'json',
+            data: jQuery.param({
+                grant_type: "refresh_token",
+                client_id: "ADMIN-UI",
+                refresh_token: window.localStorage.getItem("refresh")
+            }),
+            success:function(data, textstatus, error){
+                var tokens = JSON.parse(data);
+                var accessToken = tokens.access_token;
+                var refreshToken = tokens.refresh_token;
+                window.localStorage.setItem("access",accessToken);
+                window.localStorage.setItem("refresh", refreshToken);
+            },
+            error:function(xhr, ajaxOptions, thrownError){
+                window.location.href = "http://127.0.0.1/login.html"
+
+            }
+
+        });
+    }
+
+    function ban(user){
+        $.ajax({
+            type: "POST",
+            contentType: 'application/JSON',
+            url: '127.0.0.1:8087/ban',
+            dataType: 'json',
+            headers: {
+                "Authorization": "bearer " + window.localStorage.getItem("access"),
+            },
+            data: JSON.stringify({
+                'login': user
+            }),
+            success: function (data, textstatus, error) {
+               getUsers();
+            },
+            error:function(xhs){
+                switch(xhs.status){
+                    case '401': refreshAccessToken(); getUsers(); break;
+                    default:{
+                        var errorJson = JSON.parse(xhs.responseText);
+                        var message = errorJson.message;
+                        document.getElementById("error").value = message;
+                    }
+                }
+            }
+
+        });
+    }
+
+    function unban(user){
+        $.ajax({
+            type: "DELETE",
+            contentType: 'application/JSON',
+            url: '127.0.0.1:8087/ban/'+user,
+            dataType: 'json',
+            headers: {
+                "Authorization": "bearer " + window.localStorage.getItem("access"),
+            },
+            success: function (data, textstatus, error) {
+                getUsers();
+            },
+            error:function(xhs){
+                switch(xhs.status){
+                    case '401': refreshAccessToken(); getUsers(); break;
+                    default:{
+                        var errorJson = JSON.parse(xhs.responseText);
+                        var message = errorJson.message;
+                        document.getElementById("error").value = message;
+                    }
+                }
+            }
+
+        });
+    }
+
 </script>
-<body onload="getUsers()">
+<body>
+<div id="error"></div>
 <form>
  <ul id="active-users"></ul>
 </form>

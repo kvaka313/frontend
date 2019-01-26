@@ -5,8 +5,9 @@
  <script src="https://code.jquery.com/jquery-3.3.1.min.js">
  </script>
  <script>
+     document.addEventListener("DOMContentLoaded", onLoad);
      function onLoad(){
-         document.getElementById("send-registration").addEventListener("click","sendLogin");
+         document.getElementById("send-registration").addEventListener("click",sendLogin);
      }
 
      function sendLogin(){
@@ -18,13 +19,13 @@
              data: JSON.stringify({
                  'name': document.getElementById('name').value,
                  'login': document.getElementById('login').value,
-                 'password': document.getElementById('password').value,
+                 'password': document.getElementById('password').value
              }),
              success: function(data, textstatus, error){
                  window.location.href = 'http://127.0.0.1/index.html';
              },
-             error: function(data){
-                 var errorJson = JSON.parse(data);
+             error: function(xhs){
+                 var errorJson = JSON.parse(xhs.responseText);
                  var message = errorJson.message;
                  document.getElementById("error").value = message;
              }
@@ -34,7 +35,7 @@
 
  </script>
 
-<body onload="onLoad()">
+<body>
    <div id="error"></div>
    <form>
        Name: <input type="text" name="name" id="name"/>
