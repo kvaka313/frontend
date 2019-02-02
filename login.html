@@ -23,10 +23,10 @@
                username: document.getElementById("login").value,
                password: document.getElementById("password").value
            }),
-           success:function(data, textstatus, error){
-               var tokens = JSON.parse(data);
-               var accessToken = tokens.access_token;
-               var refreshToken = tokens.refresh_token;
+           success:function(data){
+              // var tokens = JSON.parse(data);
+               var accessToken = data.access_token;
+               var refreshToken = data.refresh_token;
                window.localStorage.setItem("access",accessToken);
                window.localStorage.setItem("refresh", refreshToken);
 
@@ -42,7 +42,7 @@
            error:function(xhs){
                var errorJson = JSON.parse(xhs.responseText);
                var message = errorJson.message;
-               document.getElementById("error").value = message;
+               document.getElementById("error").innerText = message;
            }
        });
    }

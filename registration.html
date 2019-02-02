@@ -15,7 +15,6 @@
              type:"POST",
              contentType: 'application/JSON',
              url: 'http://127.0.0.1:8087/registration',
-             dataType: 'json',
              data: JSON.stringify({
                  'name': document.getElementById('name').value,
                  'login': document.getElementById('login').value,
@@ -27,7 +26,7 @@
              error: function(xhs){
                  var errorJson = JSON.parse(xhs.responseText);
                  var message = errorJson.message;
-                 document.getElementById("error").value = message;
+                 document.getElementById("error").innerText = message;
              }
 
          });

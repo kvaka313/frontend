@@ -10,17 +10,20 @@
         $.ajax({
             type: "GET",
             contentType: 'application/JSON',
-            url: '127.0.0.1:8087/users',
+            url: 'http://127.0.0.1:8087/users',
             dataType: 'json',
             headers: {
                 "Authorization":"bearer "+window.localStorage.getItem("access"),
             },
             success: function(data, textstatus, error){
-                var users = JSON.parse(data);
+                var users = data;
+                console.log(users);
                 document.getElementById("active-users").innerHTML="";
-                for(var i =0; users.length; i++){
+                for(var i =0; i<users.length; i++){
                     var li_tag = document.createElement("li");
-                    li_tag.value = users[i].login;
+                    li_tag.innerText = users[i].login;
+                    console.log(users[i].login);
+                    console.log(users[i].isBanned);
                     var input_tag = document.createElement("input");
 
                     var att = document.createAttribute("type");       // Create a "class" attribute
@@ -32,7 +35,7 @@
                     input_tag.setAttributeNode(att);
 
                     att = document.createAttribute("value");
-                    if(users[i].isBanned == "true") {
+                    if(users[i].isBanned) {
                         att.value = "unBanned";
                     }else{
                         att.value = "banned";
@@ -64,7 +67,9 @@
         var button_click = obj.currentTarget;
         var user = button_click.name;
         var banStatus = button_click.value;
+        console.log(banStatus);
         if(banStatus == 'banned'){
+            console.log("banned_ok")
             ban(user);
         }else{
             unban(user);
@@ -102,8 +107,7 @@
         $.ajax({
             type: "POST",
             contentType: 'application/JSON',
-            url: '127.0.0.1:8087/ban',
-            dataType: 'json',
+            url: 'http://127.0.0.1:8087/ban',
             headers: {
                 "Authorization": "bearer " + window.localStorage.getItem("access"),
             },
@@ -117,9 +121,10 @@
                 switch(xhs.status){
                     case '401': refreshAccessToken(); getUsers(); break;
                     default:{
+                        console.log(xhs.status);
                         var errorJson = JSON.parse(xhs.responseText);
                         var message = errorJson.message;
-                        document.getElementById("error").value = message;
+                        document.getElementById("error").innerText = message;
                     }
                 }
             }
@@ -131,8 +136,7 @@
         $.ajax({
             type: "DELETE",
             contentType: 'application/JSON',
-            url: '127.0.0.1:8087/ban/'+user,
-            dataType: 'json',
+            url: 'http://127.0.0.1:8087/ban/'+user,
             headers: {
                 "Authorization": "bearer " + window.localStorage.getItem("access"),
             },
@@ -145,7 +149,7 @@
                     default:{
                         var errorJson = JSON.parse(xhs.responseText);
                         var message = errorJson.message;
-                        document.getElementById("error").value = message;
+                        document.getElementById("error").innerText = message;
                     }
                 }
             }
