@@ -50,9 +50,9 @@
             },
             error:function(xhs){
                 switch(xhs.status){
-                    case '401': refreshAccessToken(); getUsers(); break;
+                    case 0: refreshAccessToken(); getUsers(); break;
                     default:{
-                        var errorJson = JSON.parse(xhs.responseText);
+                        var errorJson = xhs.status;
                         var message = errorJson.message;
                         document.getElementById("error").value = message;
                     }
@@ -89,7 +89,7 @@
                 refresh_token: window.localStorage.getItem("refresh")
             }),
             success:function(data, textstatus, error){
-                var tokens = JSON.parse(data);
+                var tokens = data;
                 var accessToken = tokens.access_token;
                 var refreshToken = tokens.refresh_token;
                 window.localStorage.setItem("access",accessToken);
@@ -119,10 +119,10 @@
             },
             error:function(xhs){
                 switch(xhs.status){
-                    case '401': refreshAccessToken(); getUsers(); break;
+                    case 0: refreshAccessToken(); getUsers(); break;
                     default:{
                         console.log(xhs.status);
-                        var errorJson = JSON.parse(xhs.responseText);
+                        var errorJson = xhs.status;
                         var message = errorJson.message;
                         document.getElementById("error").innerText = message;
                     }
@@ -145,9 +145,9 @@
             },
             error:function(xhs){
                 switch(xhs.status){
-                    case '401': refreshAccessToken(); getUsers(); break;
+                    case 0: refreshAccessToken(); getUsers(); break;
                     default:{
-                        var errorJson = JSON.parse(xhs.responseText);
+                        var errorJson = xhs.status;
                         var message = errorJson.message;
                         document.getElementById("error").innerText = message;
                     }
